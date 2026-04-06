@@ -1,0 +1,20 @@
+# Uygulama adı
+spring.application.name=word-battle
+
+# PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/wordbattle
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Redis
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+
+# Server
+server.port=8081

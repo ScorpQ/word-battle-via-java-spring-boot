@@ -5,6 +5,7 @@ import com.questie.product.entity.Room;
 import com.questie.product.repository.PlayerRepository;
 import com.questie.product.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public Room createRoom(String playerId) {
         Player host = playerRepository.findById(playerId)
@@ -55,7 +57,14 @@ public class RoomService {
 
         room.getPlayers().add(player);
 
-        return roomRepository.save(room);
+        Room savedRoom = roomRepository.save(room);
+
+        messagingTemplate.convertAndSend(
+                "/topic/room/" + roomCode,
+                playerId + " oyuna katıldı"
+        );
+
+        return savedRoom;
     }
 
     private String generateUniqueCode() {

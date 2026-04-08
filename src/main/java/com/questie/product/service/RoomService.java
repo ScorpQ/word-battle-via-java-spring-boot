@@ -59,10 +59,10 @@ public class RoomService {
 
         Room savedRoom = roomRepository.save(room);
 
-        messagingTemplate.convertAndSend(
-                "/topic/room/" + roomCode,
-                playerId + " oyuna katıldı"
-        );
+            messagingTemplate.convertAndSend(
+                    "/topic/room/" + roomCode,
+                    playerId + " oyuna katıldı"
+            );
 
         return savedRoom;
     }

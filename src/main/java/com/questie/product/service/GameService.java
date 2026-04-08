@@ -16,7 +16,7 @@ public class GameService {
     private final SimpMessagingTemplate messagingTemplate;
 
     public void startGame(String roomCode, String playerId) {
-        Room room = roomRepository.findByCode(roomCode)
+        Room room = roomRepository.findByCodeWithPlayers(roomCode)
                 .orElseThrow(() -> new RuntimeException("Oda bulunamadı"));
 
         // Daha sonra frontendde hsot kontrolü ile buraya istek atacak olan butonu ui'dan kaldırman lazım.
@@ -47,5 +47,9 @@ public class GameService {
                 "/topic/room/" + room.getCode(),
                 "ROUND_STARTED:" + room.getCurrentRound() + ":" + word.getValue()
         );
+    }
+
+    public void checkAnswer(String roomCode, String playerId, String answer) {
+
     }
 }

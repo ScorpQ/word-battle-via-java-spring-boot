@@ -96,6 +96,11 @@ public class GameService {
     }
 
     public  GameSession nextRound(GameSession gameSession, String playerId) {
+        // Puan once verilmeli: son turda asagida endTheSession'a girip return
+        // ettigimiz icin, buraya konmazsa 10. turun puani hic eklenmiyordu.
+        int currentScore = gameSession.getScores().getOrDefault(playerId, 0);
+        gameSession.getScores().put(playerId, currentScore + 10);
+
         if (gameSession.getCurrentRound() == 10) {
             endTheSession(gameSession);
             return gameSession;
@@ -106,8 +111,6 @@ public class GameService {
             gameSession.setCurrentRound(gameSession.getCurrentRound() + 1);
             gameSession.setRoundWinnerId(null);
 
-            int currentScore = gameSession.getScores().getOrDefault(playerId, 0);
-            gameSession.getScores().put(playerId, currentScore + 10);
             messagingTemplate.convertAndSend(
                     "/topic/room/" + gameSession.getRoomCode(),
                     "ROUND_STARTED:" + gameSession.getCurrentRound() + ":" + word.getValue()

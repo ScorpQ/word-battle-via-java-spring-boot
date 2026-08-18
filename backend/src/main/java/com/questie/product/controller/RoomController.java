@@ -15,6 +15,11 @@ public class RoomController {
 
     private final RoomService roomService;
 
+    @GetMapping("/{roomCode}")
+    public ResponseEntity<RoomResponse> getRoom(@PathVariable String roomCode) {
+        return ResponseEntity.ok(toResponse(roomService.getRoom(roomCode)));
+    }
+
     @PostMapping("/create/{playerId}")
     public ResponseEntity<RoomResponse> createRoom(@PathVariable String playerId) {
         Room room = roomService.createRoom(playerId);

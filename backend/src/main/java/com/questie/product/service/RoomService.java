@@ -40,6 +40,12 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
+    /** Odayi oyuncularla birlikte getirir; bekleme ekraninin listeyi tazelemesi icin. */
+    public Room getRoom(String roomCode) {
+        return roomRepository.findByCodeWithPlayers(roomCode)
+                .orElseThrow(() -> new RuntimeException("Oda bulunamadı"));
+    }
+
     public Room joinRoom(String roomCode, String playerId) {
         Room room = roomRepository.findByCode(roomCode)
                 .orElseThrow(() -> new RuntimeException("Oda bulunamadı"));
@@ -61,7 +67,7 @@ public class RoomService {
 
             messagingTemplate.convertAndSend(
                     "/topic/room/" + roomCode,
-                    playerId + " oyuna katıldı"
+                    "PLAYER_JOINED:" + playerId
             );
 
         return savedRoom;

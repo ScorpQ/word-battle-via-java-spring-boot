@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>WordBattle — Dev Test</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1c1f26; --line: #2b303a;
+    --fg: #e6e8ec; --dim: #8b93a1;
+    --accent: #5b9dff; --ok: #4ade80; --warn: #fbbf24; --err: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .sub { color: var(--dim); font-size: 12px; margin-bottom: 16px; }
+  .wrap { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .card h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 10px; }
+
+  label { display: block; font-size: 11px; color: var(--dim); margin: 8px 0 3px; }
+  input {
+    width: 100%; padding: 8px 10px; background: #10131a; color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px; font: inherit;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  button {
+    width: 100%; padding: 9px 12px; margin-top: 8px; cursor: pointer;
+    background: #262b35; color: var(--fg); border: 1px solid var(--line);
+    border-radius: 6px; font: inherit; font-weight: 500;
+  }
+  button:hover:not(:disabled) { background: #2f3542; border-color: #3d4553; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #08121f; }
+  button.primary:hover:not(:disabled) { background: #74aeff; }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+  .row button { width: auto; margin-top: 0; }
+
+  .kv { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 12px; }
+  .kv span:first-child { color: var(--dim); }
+  .kv span:last-child { font-family: ui-monospace, Consolas, monospace; }
+
+  .stage { text-align: center; padding: 20px 14px; }
+  .round { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .word { font-size: 34px; font-weight: 700; letter-spacing: .1em; margin: 6px 0; min-height: 44px; font-family: ui-monospace, Consolas, monospace; }
+  .word.idle { font-size: 15px; font-weight: 400; color: var(--dim); letter-spacing: 0; }
+
+  #log {
+    height: 460px; overflow-y: auto; background: #10131a; border: 1px solid var(--line);
+    border-radius: 6px; padding: 10px; font: 12px/1.6 ui-monospace, Consolas, monospace;
+  }
+  .l { padding: 2px 0; border-bottom: 1px solid #181c24; white-space: pre-wrap; word-break: break-word; }
+  .l .t { color: #5a616e; margin-right: 8px; }
+  .l.in    { color: var(--ok); }
+  .l.out   { color: var(--accent); }
+  .l.sys   { color: var(--dim); }
+  .l.err   { color: var(--err); }
+  .l.alert { color: var(--warn); }
+
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--err); margin-right: 6px; }
+  .dot.on { background: var(--ok); }
+  .note { font-size: 11px; color: var(--dim); margin-top: 8px; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td { padding: 4px 0; border-bottom: 1px solid var(--line); font-family: ui-monospace, Consolas, monospace; }
+  td:last-child { text-align: right; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>WordBattle — Dev Test</h1>
+<div class="sub">
+  İki oyuncu için bu sayfayı iki ayrı sekmede aç. Her sekme kendi guest oyuncusunu oluşturur.
+</div>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>1 · Oyuncu</h2>
+      <button id="btnGuest" class="primary">Guest Oluştur</button>
+      <div class="kv"><span>id</span><span id="pid">—</span></div>
+      <div class="kv"><span>kullanıcı</span><span id="pname">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Oda</h2>
+      <button id="btnCreate" disabled>Yeni Oda Kur</button>
+      <label for="code">veya mevcut odaya katıl</label>
+      <div class="row">
+        <input id="code" placeholder="ABC123" maxlength="6" autocomplete="off">
+        <button id="btnJoin" disabled>Katıl</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3 · WebSocket</h2>
+      <button id="btnConnect" disabled><span class="dot" id="dot"></span>Bağlan</button>
+      <button id="btnStart" disabled>Oyunu Başlat (host)</button>
+      <div class="note">
+        Oyunu başlatmak için odada en az 2 oyuncu olmalı ve isteği host göndermeli.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Skorlar</h2>
+      <table id="scores"><tr><td colspan="2" style="color:var(--dim);border:0">henüz yok</td></tr></table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card stage">
+      <div class="round" id="roundLabel">oyun başlamadı</div>
+      <div class="word idle" id="word">kelime bekleniyor</div>
+      <div class="row" style="max-width:420px;margin:0 auto">
+        <input id="answer" placeholder="cevabını yaz" autocomplete="off" disabled>
+        <button id="btnAnswer" class="primary" disabled>Gönder</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Mesaj Akışı</h2>
+      <div id="log"></div>
+      <div class="note">
+        yeşil = sunucudan gelen · mavi = gönderilen · gri = sistem
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Durum
+// ---------------------------------------------------------------------------
+let player = null;      // {id, username}
+let roomCode = null;
+let ws = null;
+let subId = 0;
+
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------------------
+// Log
+// ---------------------------------------------------------------------------
+function log(text, cls = 'sys') {
+  const time = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+  const div = document.createElement('div');
+  div.className = 'l ' + cls;
+  div.innerHTML = '<span class="t">' + time + '</span>';
+  div.appendChild(document.createTextNode(text));
+  $('log').appendChild(div);
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+// ---------------------------------------------------------------------------
+// STOMP — kütüphane yok, frame'leri elle kuruyoruz.
+//
+// Bir STOMP frame'i şu yapıda:
+//     KOMUT\n
+//     header:deger\n
+//     \n
+//     govde\0
+//
+// Sondaki \0 (null octet) zorunlu; frame'in bittigini o isaretliyor.
+// Postman'de Text modda gonderilemeyen sey tam olarak bu karakterdi.
+// ---------------------------------------------------------------------------
+const NULL = String.fromCharCode(0);
+
+function buildFrame(command, headers = {}, body = '') {
+  let frame = command + '\n';
+  for (const [k, v] of Object.entries(headers)) frame += k + ':' + v + '\n';
+  return frame + '\n' + body + NULL;
+}
+
+function parseFrame(raw) {
+  const clean = raw.replace(/\u0000$/, '');
+  const split = clean.indexOf('\n\n');
+  const head = split === -1 ? clean : clean.slice(0, split);
+  const body = split === -1 ? '' : clean.slice(split + 2);
+  const lines = head.split('\n');
+  const headers = {};
+  lines.slice(1).forEach((line) => {
+    const i = line.indexOf(':');
+    if (i > 0) headers[line.slice(0, i)] = line.slice(i + 1);
+  });
+  return { command: lines[0], headers, body };
+}
+
+function send(command, headers, body) {
+  ws.send(buildFrame(command, headers, body));
+}
+
+function subscribe(destination) {
+  send('SUBSCRIBE', { id: 'sub-' + subId++, destination });
+  log('SUBSCRIBE ' + destination, 'out');
+}
+
+// ---------------------------------------------------------------------------
+// REST
+// ---------------------------------------------------------------------------
+async function api(method, path) {
+  const res = await fetch(path, { method });
+  if (!res.ok) throw new Error(method + ' ' + path + ' → HTTP ' + res.status);
+  return res.json();
+}
+
+$('btnGuest').onclick = async () => {
+  try {
+    player = await api('POST', '/api/players/guest');
+    $('pid').textContent = player.id.slice(0, 8) + '…';
+    $('pid').title = player.id;
+    $('pname').textContent = player.username;
+    $('btnGuest').disabled = true;
+    $('btnCreate').disabled = false;
+    $('btnJoin').disabled = false;
+    log('guest oluşturuldu: ' + player.username, 'sys');
+  } catch (e) { log(e.message, 'err'); }
+};
+
+$('btnCreate').onclick = async () => {
+  try {
+    const room = await api('POST', '/api/rooms/create/' + player.id);
+    setRoom(room.code, true);
+    log('oda kuruldu: ' + room.code + ' (bu sekme host)', 'sys');
+  } catch (e) { log(e.message, 'err'); }
+};
+
+$('btnJoin').onclick = async () => {
+  const code = $('code').value.trim().toUpperCase();
+  if (!code) return log('oda kodu gir', 'err');
+  try {
+    const room = await api('POST', '/api/rooms/join/' + code + '/' + player.id);
+    setRoom(room.code, false);
+    log('odaya katıldın: ' + room.code + ' (' + room.players.length + ' oyuncu)', 'sys');
+  } catch (e) { log(e.message + ' — oda dolu, oyun başlamış veya kod yanlış olabilir', 'err'); }
+};
+
+function setRoom(code, isHost) {
+  roomCode = code;
+  $('code').value = code;
+  $('btnCreate').disabled = true;
+  $('btnJoin').disabled = true;
+  $('btnConnect').disabled = false;
+  $('btnStart').disabled = !isHost;
+}
+
+// ---------------------------------------------------------------------------
+// WebSocket bağlantısı
+// ---------------------------------------------------------------------------
+$('btnConnect').onclick = () => {
+  const url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+  log('bağlanılıyor: ' + url, 'sys');
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    // playerId'yi CONNECT frame'ine header olarak koyuyoruz.
+    // WebSocketEventListener bunu getFirstNativeHeader("playerId") ile okuyup
+    // sessionId ile eşliyor — yanlış cevap mesajı bu sayede kişiye özel gidebiliyor.
+    send('CONNECT', {
+      'accept-version': '1.2',
+      host: location.hostname,
+      playerId: player.id
+    });
+    log('CONNECT gönderildi (playerId header ile)', 'out');
+  };
+
+  ws.onmessage = (event) => {
+    const frame = parseFrame(event.data);
+
+    if (frame.command === 'CONNECTED') {
+      $('dot').classList.add('on');
+      $('btnConnect').disabled = true;
+      $('answer').disabled = false;
+      $('btnAnswer').disabled = false;
+      log('CONNECTED — broker hazır', 'in');
+      subscribe('/topic/room/' + roomCode);
+      subscribe('/user/queue/answer/' + roomCode);
+      return;
+    }
+
+    if (frame.command === 'ERROR') {
+      log('STOMP ERROR: ' + (frame.headers.message || frame.body), 'err');
+      return;
+    }
+
+    if (frame.command === 'MESSAGE') {
+      handleMessage(frame.body, frame.headers.destination || '');
+    }
+  };
+
+  ws.onerror = () => log('WebSocket hatası', 'err');
+  ws.onclose = (e) => {
+    $('dot').classList.remove('on');
+    $('btnConnect').disabled = false;
+    log('bağlantı kapandı (kod ' + e.code + ')', 'err');
+  };
+};
+
+// ---------------------------------------------------------------------------
+// Sunucudan gelen oyun mesajları
+//
+// Backend iki farkli formatta mesaj gonderiyor: duz metin ("ROUND_STARTED:1:LION")
+// ve JSON obje (oyun sonu skorlari, yanlis cevap yaniti). Ikisini de karsiliyoruz.
+// ---------------------------------------------------------------------------
+function handleMessage(body, destination) {
+  const isPrivate = destination.includes('/queue/');
+  log((isPrivate ? '[özel] ' : '') + body, isPrivate ? 'alert' : 'in');
+
+  // JSON mu?
+  if (body.trim().startsWith('{')) {
+    let data;
+    try { data = JSON.parse(body); } catch { return; }
+
+    if (data.type === 'GAME_ENDED') {
+      showScores(data.scores);
+      $('roundLabel').textContent = 'oyun bitti';
+      $('word').textContent = 'GAME OVER';
+      $('word').classList.remove('idle');
+      $('answer').disabled = true;
+      $('btnAnswer').disabled = true;
+      return;
+    }
+
+    // Guvenlik kontrolu: sunucu yanitinda hicbir zaman currentWord gecmemeli.
+    // Gecerse yanlis cevap veren oyuncu dogru kelimeyi ogreniyor demektir.
+    if (data.currentWord) {
+      log('⚠ SIZINTI: sunucu doğru kelimeyi gönderdi → ' + data.currentWord, 'alert');
+    }
+    if (data.scores) showScores(data.scores);
+    return;
+  }
+
+  // Duz metin protokolu
+  if (body === 'WRONG_ANSWER') {
+    log('✗ yanlış cevap', 'alert');
+    return;
+  }
+
+  if (body === 'GAME_STARTED') {
+    $('roundLabel').textContent = 'oyun başladı';
+    return;
+  }
+
+  if (body.startsWith('ROUND_TIMEOUT:')) {
+    const parts = body.split(':');
+    log('⏱ süre doldu — kimse bilemedi, kelime: ' + parts[2], 'alert');
+    return;
+  }
+
+  if (body.startsWith('ROUND_STARTED:')) {
+    const [, round, word] = body.split(':');
+    $('roundLabel').textContent = 'tur ' + round + ' / 10';
+    $('word').textContent = word;
+    $('word').classList.remove('idle');
+    $('answer').value = '';
+    $('answer').focus();
+    return;
+  }
+
+  if (body.startsWith('CORRECT_ANSWER:')) {
+    const who = body.split(':')[1].trim();
+    const me = who === player.id;
+    log(me ? '✓ turu sen kazandın (+10)' : '✗ turu rakip aldı', me ? 'in' : 'alert');
+  }
+}
+
+function showScores(scores) {
+  const rows = Object.entries(scores || {});
+  const table = $('scores');
+  if (!rows.length) { table.innerHTML = '<tr><td colspan="2" style="color:var(--dim);border:0">henüz yok</td></tr>'; return; }
+  table.innerHTML = rows
+    .sort((a, b) => b[1] - a[1])
+    .map(([id, pts]) => {
+      const label = id === player.id ? 'sen' : id.slice(0, 8) + '…';
+      return '<tr><td>' + label + '</td><td>' + pts + '</td></tr>';
+    })
+    .join('');
+}
+
+// ---------------------------------------------------------------------------
+// Gönderilen komutlar
+// ---------------------------------------------------------------------------
+$('btnStart').onclick = () => {
+  const dest = '/app/room/' + roomCode + '/start';
+  send('SEND', { destination: dest, 'content-type': 'application/json' },
+       JSON.stringify({ playerId: player.id }));
+  log('SEND ' + dest, 'out');
+};
+
+function sendAnswer() {
+  const answer = $('answer').value.trim();
+  if (!answer) return;
+  const dest = '/app/room/' + roomCode + '/answer';
+  send('SEND', { destination: dest, 'content-type': 'application/json' },
+       JSON.stringify({ playerId: player.id, answer }));
+  log('SEND ' + dest + ' → "' + answer + '"', 'out');
+  $('answer').value = '';
+}
+
+$('btnAnswer').onclick = sendAnswer;
+$('answer').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendAnswer(); });
+$('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnJoin').click(); });
+
+log('hazır — önce guest oluştur', 'sys');
+</script>
+</body>
+</html>

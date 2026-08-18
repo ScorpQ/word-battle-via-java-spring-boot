@@ -1,0 +1,338 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --line: #262b35;
+  --fg: #e8eaef;
+  --dim: #8b93a1;
+  --accent: #5b9dff;
+  --good: #4ade80;
+  --bad: #f87171;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input { font: inherit; }
+
+/* ---------- yerlesim ---------- */
+
+.screen {
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.screen--center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- marka ---------- */
+
+.brand h1 {
+  margin: 0;
+  font-size: 40px;
+  letter-spacing: -0.02em;
+}
+
+.brand p {
+  margin: 8px 0 0;
+  color: var(--dim);
+}
+
+.brand--small h1 { font-size: 28px; }
+
+/* ---------- kartlar ---------- */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.card--narrow {
+  width: 100%;
+  max-width: 380px;
+  text-align: left;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- tipografi ---------- */
+
+.label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--dim);
+}
+
+.muted {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.alert {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--bad);
+  font-size: 14px;
+}
+
+.waiting {
+  margin: 16px 0 0;
+  color: var(--dim);
+  text-align: center;
+}
+
+/* ---------- kontroller ---------- */
+
+.btn {
+  padding: 11px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #232833;
+  color: var(--fg);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover:not(:disabled) { background: #2c323f; border-color: #39404f; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #071426;
+  font-weight: 600;
+}
+
+.btn--primary:hover:not(:disabled) { background: #78b0ff; border-color: #78b0ff; }
+
+.btn--lg { width: 100%; padding: 14px 18px; font-size: 17px; }
+
+.btn--ghost { background: none; border-color: transparent; color: var(--dim); }
+.btn--ghost:hover { background: none; color: var(--fg); border-color: transparent; }
+
+input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #10131a;
+  color: var(--fg);
+}
+
+input:focus { outline: none; border-color: var(--accent); }
+input:disabled { opacity: 0.5; }
+input::placeholder { color: #5c6373; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.field-row--wide { max-width: 460px; margin: 22px auto 0; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ---------- oda kodu ---------- */
+
+.code {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: #10131a;
+  color: var(--fg);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-align: center;
+  cursor: pointer;
+}
+
+.code:hover { border-color: var(--accent); }
+
+/* ---------- oyuncu listeleri ---------- */
+
+.players {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.players li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.players li:last-child { border-bottom: none; }
+
+.tags { display: inline-flex; gap: 6px; }
+
+.tag {
+  font-style: normal;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #262b35;
+  color: var(--dim);
+  margin-left: 8px;
+}
+
+.tag--me { background: rgba(91, 157, 255, 0.16); color: var(--accent); }
+
+/* ---------- oyun sahnesi ---------- */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 320px;
+  padding: 40px 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.word {
+  margin: 10px 0 0;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: clamp(36px, 8vw, 68px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.word--dim { color: var(--dim); }
+
+/* ---------- akis ---------- */
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.feed__item {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.feed__item:last-child { border-bottom: none; }
+.feed__item--good { color: var(--good); }
+.feed__item--bad { color: var(--bad); }
+.feed__empty { color: var(--dim); font-size: 13px; }
+
+/* ---------- sonuc ---------- */
+
+.ranking {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.ranking li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 10px;
+  border-radius: 8px;
+}
+
+.ranking__me { background: rgba(91, 157, 255, 0.1); }
+.ranking__pos { color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* ---------- durum gostergesi ---------- */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bad);
+  margin-right: 6px;
+}
+
+.dot--on { background: var(--good); }
